@@ -1,0 +1,57 @@
+{
+  "name": "@new-inventor/vue-pluralization",
+  "version": "1.0.0",
+  "description": "Vue pluralisation plugin for russian and english words can be extended by another languages",
+  "keywords": [
+    "pluralization",
+    "pluralisation",
+    "plural",
+    "pluralize",
+    "pluralise",
+    "ending",
+    "плюрализация",
+    "числительные",
+    "окончания",
+    "word",
+    "words",
+    "слово",
+    "vue",
+    "plugin"
+  ],
+  "main": "index.js",
+  "scripts": {
+    "setup": "yarn install",
+    "p:build": "tsc",
+    "p:clear": "node bin/clear.js",
+    "p:pack": "npm run eslint:lint && npm run clear && npm run build && node bin/pack_package.js",
+    "eslint:lint": "eslint ./src/**",
+    "eslint:fix": "eslint --fix ./src/**",
+    "eslint:dump": "eslint --print-config ./.eslintrc.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/new-inventor/vue-pluralization"
+  },
+  "author": "George Ionov <newinventor20@gmail.com>",
+  "license": "MIT",
+  "private": false,
+  "bugs": {
+    "url": "https://github.com/new-inventor/vue-pluralization/issues"
+  },
+  "homepage": "https://github.com/new-inventor/vue-pluralization#readme",
+  "dependencies": {
+    "@new-inventor/pluralization": "^1.0.1",
+    "vue": "^2.6.11"
+  },
+  "devDependencies": {
+    "@new-inventor/packages-helper": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^2.28.0",
+    "@typescript-eslint/parser": "^2.28.0",
+    "eslint": "^6.8.0",
+    "rimraf": "^3.0.2",
+    "typescript": "^3.8.3"
+  },
+  "files": [
+    "*"
+  ]
+}
