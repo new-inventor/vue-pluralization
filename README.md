@@ -1,14 +1,67 @@
 JavaScript and TypeScript Smart Pluralisation
 ==============================
 
-Overview
---------
+##Overview
 
-This module provides extendable service for pluralize words.
+This module provides vue plugin for [@new-inventor/pluralization](https://github.com/new-inventor/pluralization) service.
 
 Instead of `"zero | one | more"` notation, we provide endings notation.
 
-For example in the Russian language we can provide next json lang file:
+## Installation
+
+```shell script
+npm install -S @new-inventor/vue-pluralization
+# or
+yarn add @new-inventor/vue-pluralization
+```
+
+Usage
+---------
+
+in main.ts/js 
+
+```typescript
+import PluralizationPlugin from '@new-inventor/vue-pluralization/PluralizationPlugin';
+import ruWords from '@/ru.pluralization.json';
+import {LocaleName} from "@new-inventor/pluralization/locales";
+import RU, {RUWord} from "@new-inventor/pluralization/locales/RU";
+import WordsList from "@new-inventor/pluralization/WordsList";
+
+//...
+
+Vue.use(PluralizationPlugin, {
+  currentLocale: LocaleName.RU,
+  locales: {
+    [LocaleName.RU]: new RU(new WordsList<RUWord>(ruWords)),
+  },
+});
+```
+
+locales appears in next form: {<localeName>: <localeInstance>, ...} where instance must be child of `Locale` class
+
+**You can use plain text** instead of `LocaleName.RU` to provide different locale or different locale name.
+
+**You can extend `Locale` class** to implement your own locale. 
+
+in templates (value = 2)
+
+```html
+<div>{{ value }} {{'билет' | pluralize(value, 'nominative')}}</div> -> 2 билета
+// or
+<div>{{ '{n} {билет|nominative}' | pluralizeTemplate(value)}}</div> -> 2 билета
+```
+
+in components
+
+```typescript
+this.$pluralizer.pluralize('билет', 1, RUModifier.DATIVE);
+// or
+this.$pluralizer.pluralizeTemplate('{n} {билет|nominative}', 1);
+```
+
+**You can pass plain text** to modifier parameter instead of `RUModifier.DATIVE`
+
+pluralization config should provide object like this (for Russian):
 
 ```json
 {
@@ -25,168 +78,33 @@ For example in the Russian language we can provide next json lang file:
   },
   "подразделение": {
     "base": "подразделени",
-      "cases": {
-        "nominative": ["е", "я", "й"],
-        "genitive": ["я", "й", "й"],
-        "dative": ["ю", "ям", "ям"],
-        "accusative": ["е", "я", "й"],
-        "instrumental": ["ем", "ями", "ями"],
-        "prepositional": ["е", "ях", "ях"]
+    "cases": {
+      "nominative": ["е", "я", "й"],
+      "genitive": ["я", "й", "й"],
+      "dative": ["ю", "ям", "ям"],
+      "accusative": ["е", "я", "й"],
+      "instrumental": ["ем", "ями", "ями"],
+      "prepositional": ["е", "ях", "ях"]
     }
   }
 }
 ```  
 
-and then in the code do something like this `{{'{n} {билет|genitive}' | pluralizeTemplate(value)}}`
-or this `{{value}} {{'билет' | pluralize(value, 'genitive')}}`
+where the `key` of map is the name of word to pluralize (you pass it in the template or to pluralize function)
 
-This paradigm make code cleaner and make pluralization config slimmer.
+the `base` param is the unchanged part of word.
 
-Installation
-------------
+the `cases` param is the list of word modifiers with array of [1, 2, 5] variants of word ending
 
-```shell script
-npm install @new-inventor/smart_pluralization
-```
+You should not provide this file for English language because there are strict rule for plural words.
 
-Standalone usage
-----------------
-
-To use this library in stand alone(not framework) environment you can use this code:
-
-```typescript
-//Initialize service in the beginning of the code
-import SmartPluralizationService from '@new-inventor/smart-pluralization/SmartPluralization.service';
-import {LocaleName, RUModifier, RUWord} from '@new-inventor/smart-pluralization/locales';
-import RU from '@new-inventor/smart-pluralization/locales/RU';
-import WordsList from '@new-inventor/smart-pluralization/WordsList';
-import ruWords from './ru.pluralization.json';
-
-const pluralizationService = SmartPluralizationService.make(LocaleName.RU, {[LocaleName.RU]: new RU(new WordsList<RUWord>(ruWords))});
-
-//somewhere in the code below
-pluralizationService.pluralize('билет', 1, RUModifier.DATIVE);
-pluralizationService.pluralizeTemplate('{n} {билет|nominative}', 1);
-
-
-//or you can implement your own locale by extending the Locale class
-
-import Locale from "@new-inventor/smart-pluralization/Locale";
-export default class RU extends Locale {
-  public readonly rule: Array<(value: number) => boolean> = [
-    (value: number): boolean => {
-      return value % 10 === 1;
-    },
-    (value: number): boolean => {
-      return value % 10 >= 2;
-    },
-    (value: number): boolean => {
-      return value % 10 >= 5 || value % 10 === 0 || (value > 10 && value < 20);
-    },
-  ];
-
-  constructor(public words: WordsList<RUWord> = new WordsList<RUWord>()) {
-    super();
-  }
-
-  public pluralize(word: string, count: number, modifier?: RUModifier): string {
-    return word + this.getEnding(count, this.getCaseVariations(word, modifier));
-  }
-
-  protected getCaseVariations(word: string, modifier?: RUModifier): string[] {
-    const rawWord = this.words.get(word);
-    return rawWord.cases[modifier ? modifier : Object.keys(rawWord.cases)[0]];
-  }
-}
-```
-
-This Version implement next locales out of the box:
-
-* EN - english
-* RU - russian
-
-Vue usage
----------
-
-Use this package: [@new-inventor/vue-smart-pluralization](https://github.com/new-inventor/vue-smart-pluralization)
-
-```shell script
-npm install @new-inventor/vue-smart-pluralization
-``` 
-
-in main.ts/js 
-
-```typescript
-import SmartPluralizationPlugin from '@new-inventor/vue-smart-pluralization';
-import {LocaleName, RUWord} from '@new-inventor/smart-pluralization/locales';
-import RU from '@new-inventor/smart-pluralization/locales/RU';
-import WordsList from '@new-inventor/smart-pluralization/WordsList';
-import ruWords from './ru.pluralization.json';
-//...
-Vue.use(SmartPluralizationPlugin, {currentLocale: 'RU', locales: {[LocaleName.RU]: new RU(new WordsList<RUWord>(ruWords))}});
-```
-
-in templates
-
-```html
-<div>{{ n }} {{'билет' | pluralize(1, 'nominative')}}</div>
-<div>{{ '{n} {билет|nominative}' | pluralizeTemplate(1)}}</div>
-```
-
-in components
-
-```typescript
-this.$pluralizer.pluralize('билет', 1, RUModifier.DATIVE);
-this.$pluralizer.pluralizeTemplate('{n} {билет|nominative}', 1);
-```
-
-Angular usage
--------------
-
-use this package: [@new-inventor/angular-smart-pluralization](https://github.com/new-inventor/angular-smart-pluralization)
-
-```shell script
-npm install @new-inventor/angular-smart-pluralization
-``` 
-
-import module
-
-```typescript
-@NgModule({
-  imports:      [ SmartPluralizationModule ],
-  // ...
-})
-```
-
-inject in component or service
-
-```typescript
-import SmartPluralizationService from '@new-inventor/angular-smart-pluralization/SmartPluralization.service';
-
-class SomeClass{
-  constructor(private pluralizationService: SmartPluralizationService){}
-}
-```
-
-use in component
-
-```typescript
-this.pluralizationService.pluralize('билет', 1, RUModifier.DATIVE);
-this.pluralizationService.pluralizeTemplate('{n} {билет|nominative}', 1);
-```
-
-use in templates
-
-```html
-<div>{{ n }} {{ 'билет' | pluralize:1:'nominative' }}</div>
-<div>{{ '{n} {билет|nominative}' | pluralizeTemplate:1 }}</div>
-```
+When you will implement your own locale you should provide your own config file if it is needed.
 
 Contribute
 ----------
 Pull requests are always welcome.
 
-Issues you can add here: https://github.com/new-inventor/smart_pluralization/issues
+Issues you can add here: https://github.com/new-inventor/vue-pluralization/issues
 
 LICENCE
 -------

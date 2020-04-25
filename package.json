@@ -22,8 +22,11 @@
   "scripts": {
     "setup": "yarn install",
     "p:build": "tsc",
-    "p:clear": "node bin/clear.js",
-    "p:pack": "npm run eslint:lint && npm run clear && npm run build && node bin/pack_package.js",
+    "p:clear": "clear",
+    "p:pack": "npm run eslint:lint && npm run p:clear && npm run p:build && npm run p:copy-files && pack",
+    "p:copy-files": "copy_files",
+    "p:release": "npm run eslint:lint && npm run p:clear && npm run p:build && npm run p:copy-files && npm publish lib --access public",
+    "p:version": "version",
     "eslint:lint": "eslint ./src/**",
     "eslint:fix": "eslint --fix ./src/**",
     "eslint:dump": "eslint --print-config ./.eslintrc.json"
@@ -48,7 +51,6 @@
     "@typescript-eslint/eslint-plugin": "^2.28.0",
     "@typescript-eslint/parser": "^2.28.0",
     "eslint": "^6.8.0",
-    "rimraf": "^3.0.2",
     "typescript": "^3.8.3"
   },
   "files": [
